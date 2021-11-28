@@ -1,9 +1,5 @@
-import cv2
-import numpy as np
+from imports import *
 from miscFunctions import *
-
-def nothing(x):
-    pass
 
 def setImageThresholds():
     # set thresholds
@@ -27,7 +23,6 @@ def setImageThresholds():
         cv2.createTrackbar("Low", windowNames[i], low_thresholds[i], 255, nothing)
         cv2.createTrackbar("High", windowNames[i], high_thresholds[i], 255, nothing)
 
-
     while True:
         # Create output thresholded image.
         thresh_img = np.full((image_height, image_width), 255, dtype=np.uint8)
@@ -49,21 +44,49 @@ def setImageThresholds():
         if not cv2.waitKey(100) == -1:
             break
 
-def findBalls(filename):
-    colorlist = []
-    colorPicker(filename, colorlist=colorlist)
-    print(colorlist)
-    img = cv2.imread(filename)
-    # color_thresh = int(input("Input color thresh: "))
-    hsv = cv2.cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
+def findBalls(img):
+    """
+    Finds each color of pool ball in an image file
+    :param filename: image file name - string
+    """
+    # colorlist = []
+    # colorPicker(filename, colorlist=colorlist)
+    # print(colorlist)
 
-    lower_range = np.array([230, 85, 60]) #TODO: loop through all colored balls, currently only orange
+    hsv = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
+
+    # orange ranges:
+    lower_range = np.array([230, 85, 60])
     upper_range = np.array([255, 120, 75])
-
-    print(lower_range, upper_range)
     mask = cv2.inRange(hsv, lower_range, upper_range)
-    create_named_window("img", img)
-    cv2.imshow("img", img)
-    create_named_window("mask", mask)
-    cv2.imshow("mask", mask)
-    cv2.waitKey(0)
+    # TODO: loop through all colored balls, currently only orange
+
+    #opening+closing to clean up (gives good results on ball size relative to image)
+    ksize = 25
+    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (ksize, ksize))
+    mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)
+    ksize = 10
+    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (ksize, ksize))
+    mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
+
+    #find and display ball centroids with bounding boxes
+    num_labels, labels_img, stats, centroids = cv2.connectedComponentsWithStats(mask)
+
+    for stat, centroid in zip(stats, centroids):
+        if(stat[cv2.CC_STAT_AREA] < 5000): # do not use centroid of whole-image component (ball is < 4000 area)
+            x0 = stat[cv2.CC_STAT_LEFT]
+            y0 = stat[cv2.CC_STAT_TOP]
+            w = stat[cv2.CC_STAT_WIDTH]
+            h = stat[cv2.CC_STAT_HEIGHT]
+            img = cv2.rectangle(
+            img=img, pt1=(x0, y0), pt2=(x0 + w, y0 + h),
+            color=(255, 255, 255), thickness=3)
+
+    # create_named_window("mask", mask)
+    # cv2.imshow("mask", mask)
+    # cv2.waitKey(0)
+
+    # create_named_window("img", img)
+    # cv2.imshow("img", img)
+    # cv2.waitKey(0)
+    return img
