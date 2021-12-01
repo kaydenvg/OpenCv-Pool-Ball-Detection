@@ -22,16 +22,15 @@ def get_xy(event, x, y, flags, param):
         cv2.imshow(window_name, image)
         point_list.append((x, y))
 
-def colorPicker(filename, colorlist=None):
+def colorPicker(img, colorlist=None):
     """
     opens an image window, returns a list of colors in order which they are clicked on in the image
     :param filename: image file to open
     :param colorlist: color list variable to write clicked colors to
     """
-    img = cv2.imread(filename)
-    create_named_window(filename, img)
-    cv2.imshow(filename, img)
-    cv2.setMouseCallback(filename, on_mouse=get_color_on_click, param=(filename, img, colorlist))
+    create_named_window("color picker", img)
+    cv2.imshow("color picker", img)
+    cv2.setMouseCallback("color picker", on_mouse=get_color_on_click, param=("color picker", img, colorlist))
     print("Click on points to get RGB value.  Hit ESC to exit.")
     while True:
         if cv2.waitKey(100) == 27:  # ESC is ASCII code 27
