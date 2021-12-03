@@ -6,7 +6,8 @@ from FlattenImage import *
 if __name__ == '__main__':
     file = 'table1.png'
     img = cv2.imread(file)
-    getkeypoints(img)
+    # flattenImage(img)
+    Houghwarp(setCorners(img), img)
     # ortho = flattenImage(file)
     #
     #

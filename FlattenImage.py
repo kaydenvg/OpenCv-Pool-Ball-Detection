@@ -17,7 +17,7 @@ def orthoganize_image(image, points):
     return cv2.warpPerspective(image, perspective_matrix, (width, height))
 
 def flattenImage(img):
-    corners = getCorners(img)
+    corners = setCorners(img)
     ortho_img = orthoganize_image(img, corners)
     # TODO: crop ortho image correctly
     return ortho_img
@@ -53,26 +53,29 @@ def getkeypoints(img):
 
     #finding colinear edge keypoints
     #TODO: check more than 3 colinear components
-    for i in range(0, len(targets)):
-        for j in range(i+1, len(targets)):
-            # Get the mid point between i,j.
-            midPt = (targets[i] + targets[j])/2
-
-            # Find another target that is closest to this midpoint.
-            for k in range(0, len(targets)):
-                if k==i or k==j:
-                    continue
-                d = np.linalg.norm(targets[k] - midPt)   # distance from midpoint
-                if d < dMin:
-                    dMin = d        # This is the minimum found so far; save it
-                    i0 = targets[i]
-                    i1 = targets[k]
-                    i2 = targets[j]
+    for x in range(0, 3):
+        for i in range(0, len(targets)):
+            for j in range(i+1, len(targets)):
+                # Get the mid point between i,j.
+                midPt = (targets[i] + targets[j])/2
+                # Find another target that is closest to this midpoint.
+                for k in range(0, len(targets)):
+                    if k==i or k==j:
+                        continue
+                    d = np.linalg.norm(targets[k] - midPt)   # distance from midpoint
+                    if d < dMin:
+                        dMin = d        # This is the minimum found so far; save it
+                        i0 = targets[i]
+                        i1 = targets[k]
+                        i2 = targets[j]
+                        line = np.array([i0, i1, i2])
+                        line= line.astype(np.int32)
 
     #TODO: optionally display keypoints/lines around edge
-    img = cv2.circle(img, (int(i0[0]), int(i0[1])), 10, (0, 0, 255), 3)
-    img = cv2.circle(img, (int(i1[0]), int(i1[1])), 10, (0, 0, 255), 3)
-    img = cv2.circle(img, (int(i2[0]), int(i2[1])), 10, (0, 0, 255), 3)
+    img = cv2.circle(img, (line[0]), 10, (0, 0, 255), 3)
+    img = cv2.circle(img, (line[1]), 10, (0, 0, 255), 3)
+    img = cv2.circle(img, (line[2]), 10, (0, 0, 255), 3)
+    img = cv2.line(img, line[0], line[2], (0, 0, 255), 2)
 
 
     create_named_window("mask", mask)
@@ -84,7 +87,7 @@ def getkeypoints(img):
     cv2.waitKey(0)
 
 
-def getCorners(img):
+def setCorners(img):
     click_points  = []
     create_named_window("Pool table Corners", img)
     cv2.imshow("Pool table Corners", img)
@@ -96,3 +99,26 @@ def getCorners(img):
             break
     print("clicked points:", click_points)      # Print points to the console
     return np.array(click_points, dtype = "float32")
+
+def Houghwarp(points, img):
+    #short/long side points
+    s = np.sum(points, axis=1);
+    l = np.diff(points, axis=1);
+    corners = np.reshape([points[np.argmin(s)], points[np.argmin(l)], points[np.argmax(s)], points[np.argmax(l)]], (4, 2))
+    (tl, tr, br, bl) = corners
+    #trapezoid/perspective width
+    width_top = np.sqrt((tl[0] - tr[0]) ** 2 + (tl[1] - tr[1]) ** 2)
+    width_bottom = np.sqrt((bl[0] - br[0]) ** 2 + (bl[1] - br[1]) ** 2)
+    max_width = max(int(width_top), int(width_bottom))
+    # trapezoid/perspective height
+    height_left = np.sqrt((tl[0] - bl[0]) ** 2 + (tl[1] - bl[1]) ** 2)
+    height_right = np.sqrt((tr[0] - br[0]) ** 2 + (tr[1] - br[1]) ** 2)
+    max_height = max(int(height_left), int(height_right))
+    # transform
+    to_points = np.array([[0, 0], [max_width + 1, 0], [max_width + 1, max_height + 1], [0, max_height + 1]], dtype="float32")
+    transMtx = cv2.getPerspectiveTransform(corners, to_points)
+    img = cv2.warpPerspective(img, transMtx, (max_width, max_height))
+
+    create_named_window("houghwarp", img)
+    cv2.imshow("houghwarp", img)
+    cv2.waitKey(0)
