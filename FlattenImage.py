@@ -13,7 +13,7 @@ def orthoganize_image(image, points):
         [100, 600 ]], # bottom left
         dtype = "float32")
     perspective_matrix = cv2.getPerspectiveTransform(points, ortho_points)
-    print(perspective_matrix)
+    #print(perspective_matrix)
     return cv2.warpPerspective(image, perspective_matrix, (width, height))
 
 def flattenImage(img):
@@ -21,6 +21,7 @@ def flattenImage(img):
     ortho_img = orthoganize_image(img, corners)
     # TODO: crop ortho image correctly
     return ortho_img
+
 
 # checking for white diamond 'keypoints'
 def getkeypoints(img):
@@ -87,8 +88,15 @@ def getkeypoints(img):
     cv2.waitKey(0)
 
 
+
 def setCorners(img):
-    click_points  = []
+    # click_points = []
+    click_points = [(823, 867), (3242, 907), (3746, 2125), (298, 2081)]
+
+    if len(click_points) != 0:
+        return np.array(click_points, dtype = "float32")
+
+
     create_named_window("Pool table Corners", img)
     cv2.imshow("Pool table Corners", img)
     cv2.setMouseCallback("Pool table Corners", on_mouse=get_xy, param=("Pool table Corners", img, click_points))
@@ -122,3 +130,4 @@ def Houghwarp(points, img):
     create_named_window("houghwarp", img)
     cv2.imshow("houghwarp", img)
     cv2.waitKey(0)
+    return img
