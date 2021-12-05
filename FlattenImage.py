@@ -13,7 +13,7 @@ def orthoganize_image(image, points):
         [100, 600 ]], # bottom left
         dtype = "float32")
     perspective_matrix = cv2.getPerspectiveTransform(points, ortho_points)
-    #print(perspective_matrix)
+    print(perspective_matrix)
     return cv2.warpPerspective(image, perspective_matrix, (width, height))
 
 def flattenImage(img):
@@ -90,12 +90,12 @@ def getkeypoints(img):
 
 
 def setCorners(img):
+
     #click_points = []
     click_points = [(823, 867), (3242, 907), (3746, 2125), (298, 2081)]
 
     if len(click_points) != 0:
         return np.array(click_points, dtype = "float32")
-
 
     create_named_window("Pool table Corners", img)
     cv2.imshow("Pool table Corners", img)

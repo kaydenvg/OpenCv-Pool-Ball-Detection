@@ -4,10 +4,9 @@ from imports import *
 from FindBalls import *
 from miscFunctions import *
 from FlattenImage import *
-from findShot import *
 
 if __name__ == '__main__':
-    file = 'IMG_1293.JPG'
+    file = 'table2.png'
     img = cv2.imread(file)
 
     # ortho = flattenImage(img)
