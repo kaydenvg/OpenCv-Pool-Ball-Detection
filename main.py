@@ -7,15 +7,13 @@ if __name__ == '__main__':
     file = 'table1.png'
     img = cv2.imread(file)
     # flattenImage(img)
-    Houghwarp(setCorners(img), img)
-    # ortho = flattenImage(file)
+    ortho = Houghwarp(setCorners(img), img)
     #
     #
-    # foundballs = findBalls(ortho)
+    findBalls(ortho)
+    # setImageThresholds(ortho)
     #
-    # # create_named_window("found balls image", foundballs)
-    # cv2.imshow("found balls image", foundballs)
-    # cv2.waitKey(0)
+    cv2.waitKey(0)
 
 
 

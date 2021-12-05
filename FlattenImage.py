@@ -122,3 +122,4 @@ def Houghwarp(points, img):
     create_named_window("houghwarp", img)
     cv2.imshow("houghwarp", img)
     cv2.waitKey(0)
+    return img

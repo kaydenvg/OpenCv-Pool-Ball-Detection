@@ -2,15 +2,12 @@ from imports import *
 from miscFunctions import *
 
 
-def setImageThresholds():
+def setImageThresholds(img):
     # set HSV thresholds HUE:0-179 | SATURATION/VALUE:0-255
     low_thresholds = [0, 0, 0]
     high_thresholds = [179, 255, 255]
 
-    # import image, convert to hsv
-    # filename = str(input("enter a file name:"))
-    filename = 'table2.png'
-    bgr_img = cv2.imread(filename)
+    bgr_img = img
 
     hsv_img = cv2.cvtColor(bgr_img, cv2.COLOR_BGR2HSV)
 
@@ -53,16 +50,16 @@ def setImageThresholds():
 def findBalls(img):
     """
     Finds each color of pool ball in an image file
-    :param filename: image file name - string
+    :param filename: image
     """
 
     hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
 
     # Poolball color values
     colorlist = ['yellow', 'blue', 'red', 'purple', 'orange', 'green', 'burgundy', 'black', 'white']
-    hue_ranges = [(15, 45), (75, 120), (172, 179), (165, 179), (0, 15), (45, 75), (170, 179), (0, 35), (150, 179)]
-    sat_ranges = [(150, 255), (0, 120), (138, 255), (70, 125), (166, 255), (43, 110)]
-    val_ranges = [(150, 255), (60, 255), (70, 255), (80, 255), (245, 255), (37, 150)]
+    hue_ranges = [(15, 45), (75, 120), (0, 6), (118, 146), (5, 16), (45, 87), (0, 15), (0, 35), (150, 179)]
+    sat_ranges = [(150, 255), (0, 120), (138, 255), (39, 181), (166, 255), (43, 110)]
+    val_ranges = [(150, 255), (60, 255), (70, 255), (122, 255), (245, 255), (37, 150)]
 
     table_range = [(80, 170, 100), (120, 221, 172)]
 
@@ -93,7 +90,7 @@ def findBalls(img):
         num_labels, labels_img, stats, centroids = cv2.connectedComponentsWithStats(mask)
 
         for stat, centroid in zip(stats, centroids):
-            if stat[cv2.CC_STAT_AREA] < 5000:  # do not use centroid of whole-image component (ball is < 4000 area)
+            if stat[cv2.CC_STAT_AREA] < 10000 and stat[cv2.CC_STAT_AREA] > 1000:  # do not use centroid of whole-image component (ball is < 4000 area)
                 x0 = stat[cv2.CC_STAT_LEFT]
                 y0 = stat[cv2.CC_STAT_TOP]
                 w = stat[cv2.CC_STAT_WIDTH]
