@@ -90,7 +90,7 @@ def getkeypoints(img):
 
 
 def setCorners(img):
-    # click_points = []
+    #click_points = []
     click_points = [(823, 867), (3242, 907), (3746, 2125), (298, 2081)]
 
     if len(click_points) != 0:

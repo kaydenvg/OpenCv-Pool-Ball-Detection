@@ -7,10 +7,10 @@ from FlattenImage import *
 from findShot import *
 
 if __name__ == '__main__':
-    file = 'table2.png'
+    file = 'IMG_1293.JPG'
     img = cv2.imread(file)
 
-   # ortho = flattenImage(img)
+    # ortho = flattenImage(img)
 
     flat = Houghwarp(setCorners(img), img)
 
@@ -18,9 +18,8 @@ if __name__ == '__main__':
 
     print("Found ", str(len(foundballs)), " balls: ")
 
-    for team ,color,stat in foundballs:
+    for team, color, stat in foundballs:
         print(team, color, stat)
-
 
     # hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
     # colorPicker(hsv)

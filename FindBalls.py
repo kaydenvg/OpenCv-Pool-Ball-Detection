@@ -66,14 +66,14 @@ def findBalls(img):
 
     # Poolball color values
     colorlist = ['yellow', 'blue', 'red', 'purple', 'orange', 'green', 'burgundy', 'black', 'white']
-    hue_ranges = [(15, 35), (75, 120), (170, 177), (165, 179), (3, 7), (30, 60), (0, 4), (0, 179), (0, 179)]
-    sat_ranges = [(150, 255), (0, 120), (138, 255), (70, 125), (166, 210), (43, 110), (100, 160), (0, 50), (50, 150)]
+    hue_ranges = [(15, 35), (105, 120), (170, 177), (165, 179), (3, 7), (30, 60), (0, 4), (0, 179), (0, 179)]
+    sat_ranges = [(150, 255), (0, 255), (138, 255), (70, 125), (166, 210), (43, 110), (100, 160), (0, 50), (50, 150)]
     val_ranges = [(150, 255), (60, 255), (200, 255), (80, 255), (230, 255), (37, 150), (100, 255), (0, 100), (245, 255)]
 
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     blur = cv2.blur(gray, (1, 1))
 
-    circles = cv2.HoughCircles(blur, cv2.HOUGH_GRADIENT, 1, 40, param1=40, param2=10, minRadius=42, maxRadius=45)
+    circles = cv2.HoughCircles(blur, cv2.HOUGH_GRADIENT, 1, 40, param1=20, param2=50, minRadius=42, maxRadius=45)
 
     # Draw circles that are detected.
     if circles is not None:
@@ -169,13 +169,13 @@ def findBalls(img):
                 img=img, pt1=(x0, y0), pt2=(x0 + w, y0 + h),
                 color=(255, 255, 255), thickness=3)
 
-        # create_named_window("mask", mask)
-        # cv2.imshow("mask", mask)
-        # cv2.waitKey(0)
-        #
-        # wname = colorlist[i] + " found: " + str(found)
-        # create_named_window(wname, img)
-        # cv2.imshow(wname, img)
-        # cv2.waitKey(0)
+        create_named_window("mask", mask)
+        cv2.imshow("mask", mask)
+        cv2.waitKey(0)
+
+        wname = colorlist[i] + " found: " + str(found)
+        create_named_window(wname, img)
+        cv2.imshow(wname, img)
+        cv2.waitKey(0)
 
     return found_balls
