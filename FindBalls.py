@@ -58,10 +58,10 @@ def findBalls(img):
     # Poolball color values
     colorlist = ['yellow', 'blue', 'red', 'purple', 'orange', 'green', 'burgundy', 'black', 'white']
     hue_ranges = [(15, 45), (75, 120), (0, 6), (118, 146), (5, 16), (45, 87), (0, 15), (0, 35), (150, 179)]
-    sat_ranges = [(150, 255), (0, 120), (138, 255), (39, 181), (166, 255), (43, 110)]
-    val_ranges = [(150, 255), (60, 255), (70, 255), (122, 255), (245, 255), (37, 150)]
+    sat_ranges = [(150, 255), (0, 185), (138, 255), (39, 181), (166, 254), (43, 110)]
+    val_ranges = [(150, 255), (130, 255), (70, 255), (122, 255), (245, 254), (37, 150)]
 
-    table_range = [(80, 170, 100), (120, 221, 172)]
+    # table_range = [(80, 170, 100), (120, 221, 172)]
 
     # table_mask = cv2.inRange(hsv, table_range[0], table_range[1])
     # cv2.imshow("table mask", table_mask)

@@ -4,10 +4,11 @@ from miscFunctions import *
 from FlattenImage import *
 
 if __name__ == '__main__':
-    file = 'table1.png'
+    file = 'IMG_1292.JPG'
     img = cv2.imread(file)
     # flattenImage(img)
     ortho = Houghwarp(setCorners(img), img)
+    # colorPicker(ortho)
     #
     #
     findBalls(ortho)
