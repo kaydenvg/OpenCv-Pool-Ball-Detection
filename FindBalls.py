@@ -56,10 +56,12 @@ def findBalls(img):
     hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
 
     # Poolball color values
+    #TODO: adaptive thresholding
+    #TODO: burgandy, blac, white thresholds
     colorlist = ['yellow', 'blue', 'red', 'purple', 'orange', 'green', 'burgundy', 'black', 'white']
     hue_ranges = [(15, 45), (75, 120), (0, 6), (118, 146), (5, 16), (45, 87), (0, 15), (0, 35), (150, 179)]
-    sat_ranges = [(150, 255), (0, 185), (138, 255), (39, 181), (166, 254), (43, 110)]
-    val_ranges = [(150, 255), (130, 255), (70, 255), (122, 255), (245, 254), (37, 150)]
+    sat_ranges = [(150, 255), (0, 185), (138, 255), (39, 181), (166, 254), (43, 110), (0, 255), (0, 255), (0, 255)]
+    val_ranges = [(150, 255), (130, 255), (70, 255), (122, 255), (245, 254), (37, 150), (0, 255), (0, 255), (0, 255)]
 
     # table_range = [(80, 170, 100), (120, 221, 172)]
 
