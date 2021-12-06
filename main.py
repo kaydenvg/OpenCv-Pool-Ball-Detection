@@ -11,15 +11,14 @@ FILES = ['table1.png', 'table2.png', 'IMG_1290.JPG', 'IMG_1291.JPG', 'IMG_1292.J
 if __name__ == '__main__':
     file = "images/" + FILES[2]
     img = cv2.imread(file)
-
     flat = Houghwarp(setCorners(img), img)
 
     foundballs = findBalls(flat)
 
     print("Found ", str(len(foundballs)), " balls: ")
 
-    for team, color, stat in foundballs:
-        print(team, color, stat)
+    for team, color, stat, centroid in foundballs:
+        print(team, color, stat, centroid)
 
     # hsv = cv2.cvtColor(flat, cv2.COLOR_BGR2HSV)
     # colorPicker(hsv)

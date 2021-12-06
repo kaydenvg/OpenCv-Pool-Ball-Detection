@@ -90,8 +90,8 @@ def getkeypoints(img):
 
 
 def setCorners(img):
-    click_points = []
-
+    #click_points = []
+    click_points = [(911, 984), (3064, 887), (3451, 1548), (319, 1641)]
 
     if len(click_points) != 0:
         return np.array(click_points, dtype="float32")
