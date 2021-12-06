@@ -7,7 +7,7 @@ from FlattenImage import *
 from findShot import *
 
 if __name__ == '__main__':
-    file = 'IMG_1292.JPG'
+    file = 'images/IMG_1290.JPG'
     img = cv2.imread(file)
 
     flat = Houghwarp(setCorners(img), img)
@@ -19,12 +19,9 @@ if __name__ == '__main__':
     for team, color, stat in foundballs:
         print(team, color, stat)
 
-    shots = getAllShots(flat, 0, foundballs)
-    create_named_window("shots", shots)
-    cv2.imshow("shots", shots)
-    cv2.waitKey(0)
+    lines1, lines2, angles = getAllShots(flat, 0, foundballs)
 
-    bestshot = getBestShot(flat, 0, foundballs)
+    bestshot = getBestShot(flat, lines1, lines2, angles)
     create_named_window("best", bestshot)
     cv2.imshow("best", bestshot)
     cv2.waitKey(0)

@@ -27,17 +27,13 @@ def getAllShots(img, team, b_positions):
         for ball_loc in solid_b_loc:
             line1 = np.array([ball_loc, cueball_loc], np.int32)
             line2 = np.array([ball_loc, pocket], np.int32)
-            print(line1, line2)
-            # cross = np.cross(line1, line2)/np.linalg.norm((line1, line2))
             angle = ang(line1, line2)
             if angle > 100:
                 lines1.append(line1)
                 lines2.append(line2)
                 angles.append(180 - angle)
-        #TODO: if midpoint between pocket and white ball < thresh,
-        # draw line from white ball to ball, then ball to pocket (AKA Suggest shot)
 
-    # show all shots
+    # # show all shots
     # for line1, line2 in zip(lines1, lines2):
     #     img = cv2.circle(img, (line1[0]), 10, (0, 0, 255), 3)
     #     img = cv2.circle(img, (line1[1]), 10, (0, 0, 255), 3)
@@ -53,16 +49,18 @@ def getAllShots(img, team, b_positions):
     #     create_named_window("shot", img)
     #     cv2.imshow("shot", img)
     #     cv2.waitKey(0)
+
     return lines1, lines2, angles
 
 def getBestShot(img, lines1, lines2, angles):
     # display line with lowest shot angle
     bestshotidx = np.argmin(angles)
-    print("best:", bestshotidx, angles[bestshotidx])
-    print(lines2)
-    print(lines2[bestshotidx][0])
+    # print("best:", bestshotidx, angles[bestshotidx])
+    # print(lines2)
+    # print(lines2[bestshotidx][0])
     img = cv2.line(img, lines1[bestshotidx][0], lines1[bestshotidx][1], (0, 255, 255), 10)
     img = cv2.line(img, lines2[bestshotidx][0], lines2[bestshotidx][1], (255, 255, 255), 10)
+    img = cv2.circle(img, (lines2[bestshotidx][0]), 10, (0, 0, 255), 3)
 
     # create_named_window("shot", img)
     # cv2.imshow("shot", img)
