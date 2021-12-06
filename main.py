@@ -7,7 +7,7 @@ from FlattenImage import *
 from findShot import *
 
 if __name__ == '__main__':
-    file = 'images/IMG_1290.JPG'
+    file = 'images/IMG_1292.JPG'
     img = cv2.imread(file)
     flat = Houghwarp(setCorners(img), img)
 

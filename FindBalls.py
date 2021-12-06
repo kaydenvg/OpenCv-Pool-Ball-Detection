@@ -114,8 +114,8 @@ def findBalls(img):
 
     # remove table
     hueTable, hueTableMaterial = getHueOfTable(hsv)
-    lower = (int(hueTable - 3), 0, 0)
-    upper = (int(hueTable + 3), 255, 255)
+    lower = (int(hueTable - 5), 0, 0)
+    upper = (int(hueTable + 5), 255, 255)
     mask = cv2.inRange(hsv, lower, upper)
     mask = cv2.bitwise_not(mask)
     # lower = (int(hueTableMaterial - 2), 0, 0)
@@ -135,6 +135,16 @@ def findBalls(img):
 
     create_named_window("Table mask", table)
     cv2.imshow("Table mask", table)
+    # cv2.imwrite("table.png", table)
+    cv2.waitKey(0)
+
+    # crop table parts
+    wcut = width // 18
+    hcut = height // 10
+    hsv = hsv[wcut:height - wcut, hcut:width - hcut]
+    cropped = img[wcut:height - wcut, hcut:width - hcut]
+    create_named_window("Table cropped", cropped)
+    cv2.imshow("Table cropped", cropped)
     cv2.waitKey(0)
 
     found_balls = []
@@ -142,7 +152,7 @@ def findBalls(img):
     # Poolball color values
     # TODO: adaptive thresholding
     colorlist = ['yellow', 'blue', 'red', 'purple', 'orange', 'green', 'burgundy', 'black', 'white']
-    hue_ranges = [(15, 35), (105, 120), (0, 5), (120, 130), (5, 10), (60, 90), (176, 179), (90, 179), (10, 40)]
+    hue_ranges = [(15, 35), (105, 115), (0, 5), (120, 130), (5, 10), (60, 90), (176, 179), (90, 179), (10, 40)]
     sat_ranges = [(150, 255), (0, 255), (138, 255), (70, 125), (170, 210), (43, 255), (100, 160), (0, 200), (50, 200)]
     val_ranges = [(150, 255), (60, 255), (200, 255), (80, 255), (220, 255), (37, 150), (100, 255), (1, 50), (170, 255)]
 
@@ -161,7 +171,7 @@ def findBalls(img):
         ksize = 20
         kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (ksize, ksize))
         mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)
-        ksize = 5
+        ksize = 10
         kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (ksize, ksize))
         mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
 
@@ -173,21 +183,17 @@ def findBalls(img):
         possibleMatches = []
         for stat, centroid in zip(stats, centroids):
             # do not use centroid of whole-image component (ball is < 7000 area)
-            if  stat[cv2.CC_STAT_AREA] < 15000:
+            if stat[cv2.CC_STAT_AREA] < 20000:
 
-                if colorlist[i] == 'white':  # cue ball
-                    distances = np.array([10000.0])
+                # if colorlist[i] == 'white':  # cue ball
+                distances = np.array([10000.0])
 
-                    for _, _, _, c in found_balls:  # make sure cue ball is not just part of a stripe ball
-                        dist = np.linalg.norm(centroid - c)
-                        if dist != 0.0:
-                            distances = np.append(distances, [dist])
-
-                    min = np.ndarray.min(distances, axis=0)
-                    if min > 150.0:
-                        possibleMatches.append((stat, centroid))
-
-                else:
+                for _, _, _, c in found_balls:  # make sure cue ball is not just part of a stripe ball
+                    dist = np.linalg.norm(centroid - c)
+                    if dist != 0.0:
+                        distances = np.append(distances, [dist])
+                minD = np.ndarray.min(distances, axis=0)
+                if minD > 100.0:
                     possibleMatches.append((stat, centroid))
 
         largest_stat = None
@@ -228,19 +234,22 @@ def findBalls(img):
         if largest_stat is not None:
             found += 1
             found_balls.append(('solid', colorlist[i], largest_stat, largest_centroid))
-            x0 = largest_stat[cv2.CC_STAT_LEFT]
-            y0 = largest_stat[cv2.CC_STAT_TOP]
+            x0 = largest_stat[cv2.CC_STAT_LEFT] + hcut
+            y0 = largest_stat[cv2.CC_STAT_TOP] + wcut
             w = largest_stat[cv2.CC_STAT_WIDTH]
             h = largest_stat[cv2.CC_STAT_HEIGHT]
             img = cv2.rectangle(
                 img=img, pt1=(x0, y0), pt2=(x0 + w, y0 + h),
                 color=(255, 255, 255), thickness=3)
 
+        if np.linalg.norm(secondl_centroid - largest_centroid) < 150.0:  # dont find the same ball
+            secondl_stat = None
+            secondl_centroid = None
         if secondl_stat is not None and colorlist[i] != 'white':
             found += 1
             found_balls.append(('striped', colorlist[i], secondl_stat, secondl_centroid))
-            x0 = secondl_stat[cv2.CC_STAT_LEFT]
-            y0 = secondl_stat[cv2.CC_STAT_TOP]
+            x0 = secondl_stat[cv2.CC_STAT_LEFT] + hcut
+            y0 = secondl_stat[cv2.CC_STAT_TOP] + wcut
             w = secondl_stat[cv2.CC_STAT_WIDTH]
             h = secondl_stat[cv2.CC_STAT_HEIGHT]
             img = cv2.rectangle(
@@ -256,4 +265,11 @@ def findBalls(img):
         cv2.imshow(wname, img)
         cv2.waitKey(0)
 
+        for _, _, stat, _ in found_balls:
+            stat[cv2.CC_STAT_LEFT] + hcut
+            stat[cv2.CC_STAT_TOP] + wcut
+
+    create_named_window("colors", img)
+    cv2.imshow("colors", img)
+    cv2.waitKey(0)
     return found_balls
