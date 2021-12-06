@@ -1,30 +1,27 @@
 import cv2.cv2
+import copy
 
 from imports import *
 from miscFunctions import *
-
-
 def orthoganize_image(image, points):
     height = image.shape[0]
     width = image.shape[1]
     ortho_points = np.array([
-        # [x, y]
-        [100, 100],  # top left
-        [1000, 100],  # top right
-        [1000, 600],  # bottom right
-        [100, 600]],  # bottom left
-        dtype="float32")
+        #[x, y]
+        [100, 100],     #top left
+        [1000, 100],   # top right
+        [1000, 600], # bottom right
+        [100, 600 ]], # bottom left
+        dtype = "float32")
     perspective_matrix = cv2.getPerspectiveTransform(points, ortho_points)
     print(perspective_matrix)
     return cv2.warpPerspective(image, perspective_matrix, (width, height))
-
 
 def flattenImage(img):
     corners = setCorners(img)
     ortho_img = orthoganize_image(img, corners)
     # TODO: crop ortho image correctly
     return ortho_img
-
 
 # checking for white diamond 'keypoints'
 def getkeypoints(img):
@@ -42,8 +39,9 @@ def getkeypoints(img):
     num_labels, labels_img, stats, centroids = cv2.connectedComponentsWithStats(mask)
     targets = []
 
+
     for stat, centroid in zip(stats, centroids):
-        if (stat[cv2.CC_STAT_AREA] < 500 and stat[cv2.CC_STAT_AREA] > 20):  # do not use centroid if call, noise, etc
+        if ( stat[cv2.CC_STAT_AREA] < 500 and stat[cv2.CC_STAT_AREA] > 20):  # do not use centroid if call, noise, etc
             x0 = stat[cv2.CC_STAT_LEFT]
             y0 = stat[cv2.CC_STAT_TOP]
             w = stat[cv2.CC_STAT_WIDTH]
@@ -56,7 +54,6 @@ def getkeypoints(img):
 
     # finding colinear edge keypoints
     # TODO: check more than 3 colinear components
-
     # lines = []
     # dMin = 30
     # for x in range(0, 3):
@@ -73,6 +70,8 @@ def getkeypoints(img):
     #                     line = np.array([targets[i], targets[j]], np.int32)
     #                     lines.append(line)
     #                     # dMin = d        # This is the minimum found so far; save it
+
+    # #TODO: optionally display keypoints/lines around edge
     # for line in lines:
     #     img = cv2.circle(img, (line[0]), 10, (0, 0, 255), 3)
     #     img = cv2.circle(img, (line[1]), 10, (0, 0, 255), 3)
@@ -90,32 +89,37 @@ def getkeypoints(img):
 
 
 def setCorners(img):
-    #click_points = []
-    click_points = [(911, 984), (3064, 887), (3451, 1548), (319, 1641)]
-
-    if len(click_points) != 0:
-        return np.array(click_points, dtype="float32")
-
-    create_named_window("Pool table Corners", img)
-    cv2.imshow("Pool table Corners", img)
-    cv2.setMouseCallback("Pool table Corners", on_mouse=get_xy, param=("Pool table Corners", img, click_points))
+# <<<<<<< HEAD
+#     #click_points = []
+#     click_points = [(911, 984), (3064, 887), (3451, 1548), (319, 1641)]
+#
+#     if len(click_points) != 0:
+#         return np.array(click_points, dtype="float32")
+#
+#     create_named_window("Pool table Corners", img)
+#     cv2.imshow("Pool table Corners", img)
+#     cv2.setMouseCallback("Pool table Corners", on_mouse=get_xy, param=("Pool table Corners", img, click_points))
+# =======
+    img_copy = copy.deepcopy(img) #make a copy of image, do not diplay corner selections on final image
+    click_points  = []
+    create_named_window("Pool table Corners", img_copy)
+    cv2.imshow("Pool table Corners", img_copy)
+    cv2.setMouseCallback("Pool table Corners", on_mouse=get_xy, param=("Pool table Corners", img_copy, click_points))
 
     print("Click on the center of each corner pocket.  Hit ESC to finish.")
     while True:
         if cv2.waitKey(100) == 27:  # ESC is ASCII code 27
             break
-    print("clicked points:", click_points)  # Print points to the console
-    return np.array(click_points, dtype="float32")
-
+    print("clicked points:", click_points)      # Print points to the console
+    return np.array(click_points, dtype = "float32")
 
 def Houghwarp(points, img):
-    # short/long side points
+    #short/long side points
     s = np.sum(points, axis=1);
     l = np.diff(points, axis=1);
-    corners = np.reshape([points[np.argmin(s)], points[np.argmin(l)], points[np.argmax(s)], points[np.argmax(l)]],
-                         (4, 2))
+    corners = np.reshape([points[np.argmin(s)], points[np.argmin(l)], points[np.argmax(s)], points[np.argmax(l)]], (4, 2))
     (tl, tr, br, bl) = corners
-    # trapezoid/perspective width
+    #trapezoid/perspective width
     width_top = np.sqrt((tl[0] - tr[0]) ** 2 + (tl[1] - tr[1]) ** 2)
     width_bottom = np.sqrt((bl[0] - br[0]) ** 2 + (bl[1] - br[1]) ** 2)
     max_width = max(int(width_top), int(width_bottom))
@@ -123,9 +127,10 @@ def Houghwarp(points, img):
     height_left = np.sqrt((tl[0] - bl[0]) ** 2 + (tl[1] - bl[1]) ** 2)
     height_right = np.sqrt((tr[0] - br[0]) ** 2 + (tr[1] - br[1]) ** 2)
     max_height = max(int(height_left), int(height_right))
+    if max_height* 1.75 < max_width:
+        max_height = int(max_width/1.75)
     # transform
-    to_points = np.array([[0, 0], [max_width + 1, 0], [max_width + 1, max_height + 1], [0, max_height + 1]],
-                         dtype="float32")
+    to_points = np.array([[0, 0], [max_width + 1, 0], [max_width + 1, max_height + 1], [0, max_height + 1]], dtype="float32")
     transMtx = cv2.getPerspectiveTransform(corners, to_points)
     img = cv2.warpPerspective(img, transMtx, (max_width, max_height))
 
@@ -133,7 +138,6 @@ def Houghwarp(points, img):
     cv2.imshow("houghwarp", img)
     cv2.waitKey(0)
     return img
-
 
 def houghlines(img):
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)

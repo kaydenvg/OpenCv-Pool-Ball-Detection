@@ -173,7 +173,7 @@ def findBalls(img):
         possibleMatches = []
         for stat, centroid in zip(stats, centroids):
             # do not use centroid of whole-image component (ball is < 7000 area)
-            if 7000 > stat[cv2.CC_STAT_AREA]:
+            if  stat[cv2.CC_STAT_AREA] < 15000:
 
                 if colorlist[i] == 'white':  # cue ball
                     distances = np.array([10000.0])
@@ -202,7 +202,7 @@ def findBalls(img):
             min = 100000
             for stat, centroid in possibleMatches:
                 dist = np.linalg.norm(centroid - center)
-                if stat[cv2.CC_STAT_AREA] > 400:
+                if stat[cv2.CC_STAT_AREA] > 1000:
                     ds.append((dist, stat, centroid))
             for d, stat, c in ds:
                 if d < min:
@@ -236,7 +236,7 @@ def findBalls(img):
                 img=img, pt1=(x0, y0), pt2=(x0 + w, y0 + h),
                 color=(255, 255, 255), thickness=3)
 
-        if secondl_stat is not None:
+        if secondl_stat is not None and colorlist[i] != 'white':
             found += 1
             found_balls.append(('striped', colorlist[i], secondl_stat, secondl_centroid))
             x0 = secondl_stat[cv2.CC_STAT_LEFT]
@@ -247,13 +247,13 @@ def findBalls(img):
                 img=img, pt1=(x0, y0), pt2=(x0 + w, y0 + h),
                 color=(255, 255, 255), thickness=3)
 
-        # create_named_window("mask", mask)
-        # cv2.imshow("mask", mask)
-        # # cv2.waitKey(0)
-        #
-        # wname = colorlist[i] + " found: " + str(found)
-        # create_named_window(wname, img)
-        # cv2.imshow(wname, img)
+        create_named_window("mask", mask)
+        cv2.imshow("mask", mask)
+        # cv2.waitKey(0)
+
+        wname = colorlist[i] + " found: " + str(found)
+        create_named_window(wname, img)
+        cv2.imshow(wname, img)
         cv2.waitKey(0)
 
     return found_balls
