@@ -2,16 +2,17 @@ from imports import *
 from miscFunctions import *
 import math
 def getAllShots(img, team, b_positions):
-    shot_thresh = .5
     solid_b_loc = []
     cueball_loc = []
     for team, color, stat in b_positions:
         if color == 'white':
-            cueball_loc = stat[:2]
+            #TODO: get center of cue ball
+            cueball_loc = [491,1364]
         if team == 'solid' and stat is not None and color != 'white':
-            solid_b_loc.append(stat[:2])
+            #TODO get center of each ball/team of ball
+            solid_b_loc.append([stat[0] + stat[2]/2, stat[1] + stat[3]/2])
 
-
+    #TODO: get pocket locations
     pocketLocs = [(50, 50),
                   (50, img.shape[0] - 50),
                   (img.shape[1] - 50, img.shape[0] - 50),
@@ -23,6 +24,7 @@ def getAllShots(img, team, b_positions):
     lines1 = []
     lines2 = []
     angles = []
+    distances = []
     for pocket in pocketLocs:
         for ball_loc in solid_b_loc:
             line1 = np.array([ball_loc, cueball_loc], np.int32)
@@ -32,29 +34,35 @@ def getAllShots(img, team, b_positions):
                 lines1.append(line1)
                 lines2.append(line2)
                 angles.append(180 - angle)
+                distances.append(np.linalg.norm(line1[1] - line1[0]) + np.linalg.norm(line2[1] - line2[0]))
 
     # # show all shots
-    # for line1, line2 in zip(lines1, lines2):
-    #     img = cv2.circle(img, (line1[0]), 10, (0, 0, 255), 3)
-    #     img = cv2.circle(img, (line1[1]), 10, (0, 0, 255), 3)
-    #     img = cv2.line(img, line1[0], line1[1], (0, 255, 255), 10)
-    #
-    #     img = cv2.circle(img, (line2[0]), 10, (0, 0, 255), 3)
-    #     img = cv2.circle(img, (line2[1]), 10, (0, 0, 255), 3)
-    #     img = cv2.line(img, line2[0], line2[1], (255, 255, 255), 10)
-    #
-    #     angle = ang(line1, line2)
-    #     print("angle", angle)
-    #
-    #     create_named_window("shot", img)
-    #     cv2.imshow("shot", img)
-    #     cv2.waitKey(0)
+    for line1, line2 in zip(lines1, lines2):
+        img = cv2.circle(img, (line1[0]), 10, (0, 0, 255), 3)
+        img = cv2.circle(img, (line1[1]), 10, (0, 0, 255), 3)
+        img = cv2.line(img, line1[0], line1[1], (0, 255, 255), 10)
 
-    return lines1, lines2, angles
+        img = cv2.circle(img, (line2[0]), 10, (0, 0, 255), 3)
+        img = cv2.circle(img, (line2[1]), 10, (0, 0, 255), 3)
+        img = cv2.line(img, line2[0], line2[1], (255, 255, 255), 10)
 
-def getBestShot(img, lines1, lines2, angles):
+        angle = ang(line1, line2)
+        print("angle", angle)
+
+        # create_named_window("shot", img)
+        # cv2.imshow("shot", img)
+        # cv2.waitKey(0)
+
+    return lines1, lines2, angles, distances
+
+def getBestShot(img, lines1, lines2, angles, distances, priority='distance'):
     # display line with lowest shot angle
-    bestshotidx = np.argmin(angles)
+    assert priority in ['distance', 'angle']
+    if priority =='distance':
+        bestshotidx = np.argmin(distances)
+    else:
+        bestshotidx = np.argmin(angles)
+
     # print("best:", bestshotidx, angles[bestshotidx])
     # print(lines2)
     # print(lines2[bestshotidx][0])
