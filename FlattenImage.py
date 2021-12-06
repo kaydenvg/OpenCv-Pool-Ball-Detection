@@ -1,4 +1,5 @@
 import cv2.cv2
+import copy
 
 from imports import *
 from miscFunctions import *
@@ -21,7 +22,6 @@ def flattenImage(img):
     ortho_img = orthoganize_image(img, corners)
     # TODO: crop ortho image correctly
     return ortho_img
-
 
 # checking for white diamond 'keypoints'
 def getkeypoints(img):
@@ -54,7 +54,6 @@ def getkeypoints(img):
 
     # finding colinear edge keypoints
     # TODO: check more than 3 colinear components
-
     # lines = []
     # dMin = 30
     # for x in range(0, 3):
@@ -71,6 +70,8 @@ def getkeypoints(img):
     #                     line = np.array([targets[i], targets[j]], np.int32)
     #                     lines.append(line)
     #                     # dMin = d        # This is the minimum found so far; save it
+
+    # #TODO: optionally display keypoints/lines around edge
     # for line in lines:
     #     img = cv2.circle(img, (line[0]), 10, (0, 0, 255), 3)
     #     img = cv2.circle(img, (line[1]), 10, (0, 0, 255), 3)
@@ -87,18 +88,12 @@ def getkeypoints(img):
     return img
 
 
-
 def setCorners(img):
-
-    #click_points = []
-    click_points = [(823, 867), (3242, 907), (3746, 2125), (298, 2081)]
-
-    if len(click_points) != 0:
-        return np.array(click_points, dtype = "float32")
-
-    create_named_window("Pool table Corners", img)
-    cv2.imshow("Pool table Corners", img)
-    cv2.setMouseCallback("Pool table Corners", on_mouse=get_xy, param=("Pool table Corners", img, click_points))
+    img_copy = copy.deepcopy(img) #make a copy of image, do not diplay corner selections on final image
+    click_points  = []
+    create_named_window("Pool table Corners", img_copy)
+    cv2.imshow("Pool table Corners", img_copy)
+    cv2.setMouseCallback("Pool table Corners", on_mouse=get_xy, param=("Pool table Corners", img_copy, click_points))
 
     print("Click on the center of each corner pocket.  Hit ESC to finish.")
     while True:
@@ -121,6 +116,8 @@ def Houghwarp(points, img):
     height_left = np.sqrt((tl[0] - bl[0]) ** 2 + (tl[1] - bl[1]) ** 2)
     height_right = np.sqrt((tr[0] - br[0]) ** 2 + (tr[1] - br[1]) ** 2)
     max_height = max(int(height_left), int(height_right))
+    if max_height* 1.75 < max_width:
+        max_height = int(max_width/1.75)
     # transform
     to_points = np.array([[0, 0], [max_width + 1, 0], [max_width + 1, max_height + 1], [0, max_height + 1]], dtype="float32")
     transMtx = cv2.getPerspectiveTransform(corners, to_points)

@@ -4,12 +4,11 @@ from imports import *
 from FindBalls import *
 from miscFunctions import *
 from FlattenImage import *
+from findShot import *
 
 if __name__ == '__main__':
-    file = 'table2.png'
+    file = 'IMG_1292.JPG'
     img = cv2.imread(file)
-
-    # ortho = flattenImage(img)
 
     flat = Houghwarp(setCorners(img), img)
 
@@ -19,6 +18,16 @@ if __name__ == '__main__':
 
     for team, color, stat in foundballs:
         print(team, color, stat)
+
+    shots = getAllShots(flat, 0, foundballs)
+    create_named_window("shots", shots)
+    cv2.imshow("shots", shots)
+    cv2.waitKey(0)
+
+    bestshot = getBestShot(flat, 0, foundballs)
+    create_named_window("best", bestshot)
+    cv2.imshow("best", bestshot)
+    cv2.waitKey(0)
 
     # hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
     # colorPicker(hsv)
