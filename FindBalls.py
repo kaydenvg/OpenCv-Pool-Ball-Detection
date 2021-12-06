@@ -1,3 +1,5 @@
+import cv2.cv2
+
 from imports import *
 from miscFunctions import *
 
@@ -47,27 +49,93 @@ def setImageThresholds(img):
             break
 
 
+def colorHist(img):
+    h, s, v = img[:, :, 0], img[:, :, 1], img[:, :, 2]
+    hist_h = cv2.calcHist([h], [0], None, [179], [0, 179])
+    hist_s = cv2.calcHist([s], [0], None, [256], [0, 256])
+    hist_v = cv2.calcHist([v], [0], None, [256], [0, 256])
+    plt.plot(hist_h, color='r', label="h")
+    plt.plot(hist_s, color='b', label="s")
+    plt.plot(hist_v, color='g', label="v")
+    plt.legend()
+    plt.show()
+
+    mode = 0
+
+    hval = np.argmax(hist_h)
+    print(hval)
+
+
+def getHueOfTable(img):
+    # takes hsv img
+    h, s, v = img[:, :, 0], img[:, :, 1], img[:, :, 2]
+    hist_h = cv2.calcHist([h], [0], None, [179], [0, 179])
+    hval = np.argmax(hist_h)
+    print(hval)
+    return hval
+
+
 def findBalls(img):
     """
     Finds each color of pool ball in an image file
-    :param filename: image
+
+    :param filename: image file name - string
+
+    return list [ tuple (colorname, ballstats) ]
     """
 
     hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+    # colorHist(hsv)
+
+    # remove table
+    hueTable = getHueOfTable(hsv)
+    lower = (int(hueTable - 3), 0, 0)
+    upper = (int(hueTable + 3), 255, 255)
+    mask = cv2.inRange(hsv, lower, upper)
+    mask = cv2.bitwise_not(mask)
+
+    ksize = 15
+    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (ksize, ksize))
+    mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)
+    ksize = 15
+    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (ksize, ksize))
+    mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
+
+    hsv = cv2.bitwise_and(hsv, hsv, mask=mask)
+
+    create_named_window("Table mask", hsv)
+    cv2.imshow("Table mask", hsv)
+    cv2.waitKey(0)
+
+    found_balls = []
 
     # Poolball color values
-    #TODO: adaptive thresholding
-    #TODO: burgandy, blac, white thresholds
+    # TODO: adaptive thresholding
     colorlist = ['yellow', 'blue', 'red', 'purple', 'orange', 'green', 'burgundy', 'black', 'white']
-    hue_ranges = [(15, 45), (75, 120), (0, 6), (118, 146), (5, 16), (45, 87), (0, 15), (0, 35), (150, 179)]
-    sat_ranges = [(150, 255), (0, 185), (138, 255), (39, 181), (166, 254), (43, 110), (0, 255), (0, 255), (0, 255)]
-    val_ranges = [(150, 255), (130, 255), (70, 255), (122, 255), (245, 254), (37, 150), (0, 255), (0, 255), (0, 255)]
+    hue_ranges = [(15, 35), (105, 120), (170, 177), (165, 179), (3, 7), (30, 60), (0, 4), (0, 179), (0, 179)]
+    sat_ranges = [(150, 255), (0, 255), (138, 255), (70, 125), (166, 210), (43, 110), (100, 160), (0, 50), (50, 150)]
+    val_ranges = [(150, 255), (60, 255), (200, 255), (80, 255), (230, 255), (37, 150), (100, 255), (0, 100), (245, 255)]
 
-    # table_range = [(80, 170, 100), (120, 221, 172)]
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    blur = cv2.blur(gray, (1, 1))
 
-    # table_mask = cv2.inRange(hsv, table_range[0], table_range[1])
-    # cv2.imshow("table mask", table_mask)
-    # cv2.waitKey(0)
+    circles = cv2.HoughCircles(blur, cv2.HOUGH_GRADIENT, 1, 40, param1=20, param2=50, minRadius=42, maxRadius=45)
+
+    # Draw circles that are detected.
+    if circles is not None:
+
+        # Convert the circle parameters a, b and r to integers.
+        detected_circles = np.uint16(np.around(circles))
+
+        for pt in detected_circles[0, :]:
+            a, b, r = pt[0], pt[1], pt[2]
+
+            # Draw the circumference of the circle.
+            cv2.circle(img, (a, b), r, (0, 255, 0), 2)
+
+            create_named_window("Detected Circle", img)
+            cv2.imshow("Detected Circle", img)
+            cv2.waitKey(0)
 
     for i in range(len(colorlist)):
         hLow, hHigh = hue_ranges[i]
@@ -77,36 +145,71 @@ def findBalls(img):
         lower = (hLow, sLow, vLow)
         upper = (hHigh, sHigh, vHigh)
 
-        print(colorlist[i] + ' threshold: L=', lower, 'H=', upper, sep='')
+        print(colorlist[i] + ' threshold: L=', lower, ' H=', upper, sep='')
         mask = cv2.inRange(hsv, lower, upper)
 
         # opening+closing to clean up (gives good results on ball size relative to image)
         ksize = 25
         kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (ksize, ksize))
         mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)
-        ksize = 10
+        ksize = 15
         kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (ksize, ksize))
         mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
 
         # find and display ball centroids with bounding boxes
         num_labels, labels_img, stats, centroids = cv2.connectedComponentsWithStats(mask)
 
+        # Do not find more than two ( 1 for cue and black)
+        found = 0
+        possibleMatches = []
         for stat, centroid in zip(stats, centroids):
-            if stat[cv2.CC_STAT_AREA] < 10000 and stat[cv2.CC_STAT_AREA] > 1000:  # do not use centroid of whole-image component (ball is < 4000 area)
-                x0 = stat[cv2.CC_STAT_LEFT]
-                y0 = stat[cv2.CC_STAT_TOP]
-                w = stat[cv2.CC_STAT_WIDTH]
-                h = stat[cv2.CC_STAT_HEIGHT]
-                img = cv2.rectangle(
-                    img=img, pt1=(x0, y0), pt2=(x0 + w, y0 + h),
-                    color=(255, 255, 255), thickness=3)
+            # do not use centroid of whole-image component (ball is < 7000 area)
+            if 7000 > stat[cv2.CC_STAT_AREA] > 250:
+                found += 1
+                possibleMatches.append(stat)
+
+        # find largest area
+        largest_stat = None
+        secondl_stat = None
+        largest_area = 0
+        secondl_area = 0
+        for stat in possibleMatches:
+            if stat[cv2.CC_STAT_AREA] > largest_area:
+                if largest_area > 0:
+                    secondl_area = largest_area
+                    secondl_stat = largest_stat
+                largest_area = stat[cv2.CC_STAT_AREA]
+                largest_stat = stat
+            elif found > 1 and stat[cv2.CC_STAT_AREA] > secondl_area:
+                secondl_area = stat[cv2.CC_STAT_AREA]
+                secondl_stat = stat
+
+        found_balls.append(('solid', colorlist[i], largest_stat))
+        x0 = largest_stat[cv2.CC_STAT_LEFT]
+        y0 = largest_stat[cv2.CC_STAT_TOP]
+        w = largest_stat[cv2.CC_STAT_WIDTH]
+        h = largest_stat[cv2.CC_STAT_HEIGHT]
+        img = cv2.rectangle(
+            img=img, pt1=(x0, y0), pt2=(x0 + w, y0 + h),
+            color=(255, 255, 255), thickness=3)
+
+        if secondl_stat is not None and i < len(colorlist) - 2:
+            found_balls.append(('striped', colorlist[i], secondl_stat))
+            x0 = secondl_stat[cv2.CC_STAT_LEFT]
+            y0 = secondl_stat[cv2.CC_STAT_TOP]
+            w = secondl_stat[cv2.CC_STAT_WIDTH]
+            h = secondl_stat[cv2.CC_STAT_HEIGHT]
+            img = cv2.rectangle(
+                img=img, pt1=(x0, y0), pt2=(x0 + w, y0 + h),
+                color=(255, 255, 255), thickness=3)
 
         create_named_window("mask", mask)
         cv2.imshow("mask", mask)
         cv2.waitKey(0)
 
-        create_named_window("img", img)
-        cv2.imshow("img", img)
+        wname = colorlist[i] + " found: " + str(found)
+        create_named_window(wname, img)
+        cv2.imshow(wname, img)
         cv2.waitKey(0)
 
-    return img
+    return found_balls

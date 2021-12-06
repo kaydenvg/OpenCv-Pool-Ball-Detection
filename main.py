@@ -1,20 +1,24 @@
+import cv2.cv2
+
 from imports import *
 from FindBalls import *
 from miscFunctions import *
 from FlattenImage import *
 
 if __name__ == '__main__':
-    file = 'IMG_1292.JPG'
+    file = 'table2.png'
     img = cv2.imread(file)
-    # flattenImage(img)
-    ortho = Houghwarp(setCorners(img), img)
-    # colorPicker(ortho)
-    #
-    #
-    findBalls(ortho)
-    # setImageThresholds(ortho)
-    #
-    cv2.waitKey(0)
 
+    # ortho = flattenImage(img)
 
+    flat = Houghwarp(setCorners(img), img)
 
+    foundballs = findBalls(flat)
+
+    print("Found ", str(len(foundballs)), " balls: ")
+
+    for team, color, stat in foundballs:
+        print(team, color, stat)
+
+    # hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+    # colorPicker(hsv)

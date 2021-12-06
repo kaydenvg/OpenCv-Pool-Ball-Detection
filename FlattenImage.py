@@ -22,6 +22,7 @@ def flattenImage(img):
     # TODO: crop ortho image correctly
     return ortho_img
 
+
 # checking for white diamond 'keypoints'
 def getkeypoints(img):
     hsv = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
@@ -86,8 +87,15 @@ def getkeypoints(img):
     return img
 
 
+
 def setCorners(img):
-    click_points  = []
+
+    #click_points = []
+    click_points = [(823, 867), (3242, 907), (3746, 2125), (298, 2081)]
+
+    if len(click_points) != 0:
+        return np.array(click_points, dtype = "float32")
+
     create_named_window("Pool table Corners", img)
     cv2.imshow("Pool table Corners", img)
     cv2.setMouseCallback("Pool table Corners", on_mouse=get_xy, param=("Pool table Corners", img, click_points))
