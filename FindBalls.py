@@ -242,7 +242,8 @@ def findBalls(img):
                 img=img, pt1=(x0, y0), pt2=(x0 + w, y0 + h),
                 color=(255, 255, 255), thickness=3)
 
-        if np.linalg.norm(secondl_centroid - largest_centroid) < 150.0:  # dont find the same ball
+        if secondl_centroid is not None and np.linalg.norm(
+                secondl_centroid - largest_centroid) < 150.0:  # dont find the same ball
             secondl_stat = None
             secondl_centroid = None
         if secondl_stat is not None and colorlist[i] != 'white':
@@ -256,18 +257,19 @@ def findBalls(img):
                 img=img, pt1=(x0, y0), pt2=(x0 + w, y0 + h),
                 color=(255, 255, 255), thickness=3)
 
-        create_named_window("mask", mask)
-        cv2.imshow("mask", mask)
+        # create_named_window("mask", mask)
+        # cv2.imshow("mask", mask)
+        # # cv2.waitKey(0)
+        #
+        # wname = colorlist[i] + " found: " + str(found)
+        # create_named_window(wname, img)
+        # cv2.imshow(wname, img)
         # cv2.waitKey(0)
 
-        wname = colorlist[i] + " found: " + str(found)
-        create_named_window(wname, img)
-        cv2.imshow(wname, img)
-        cv2.waitKey(0)
-
-        for _, _, stat, _ in found_balls:
-            stat[cv2.CC_STAT_LEFT] + hcut
-            stat[cv2.CC_STAT_TOP] + wcut
+    for k, (team, color, stat, centroid) in enumerate(found_balls):
+        x, y = centroid
+        c = (x + hcut, y + wcut)
+        found_balls[k] = (team, color, stat, c)
 
     create_named_window("colors", img)
     cv2.imshow("colors", img)

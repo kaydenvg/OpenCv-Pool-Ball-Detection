@@ -89,16 +89,16 @@ def getkeypoints(img):
 
 def setCorners(img):
     img_copy = copy.deepcopy(img) #make a copy of image, do not diplay corner selections on final image
-    click_points = [(1008, 1153), (2968, 1198), (3665, 2246), (258, 2226)]
-    # create_named_window("Pool table Corners", img_copy)
-    # cv2.imshow("Pool table Corners", img_copy)
-    # cv2.setMouseCallback("Pool table Corners", on_mouse=get_xy, param=("Pool table Corners", img_copy, click_points))
-    #
-    # print("Click on the center of each corner pocket.  Hit ESC to finish.")
-    # while True:
-    #     if cv2.waitKey(100) == 27:  # ESC is ASCII code 27
-    #         break
-    # print("clicked points:", click_points)      # Print points to the console
+    click_points = []
+    create_named_window("Pool table Corners", img_copy)
+    cv2.imshow("Pool table Corners", img_copy)
+    cv2.setMouseCallback("Pool table Corners", on_mouse=get_xy, param=("Pool table Corners", img_copy, click_points))
+
+    print("Click on the center of each corner pocket.  Hit ESC to finish.")
+    while True:
+        if cv2.waitKey(100) == 27:  # ESC is ASCII code 27
+            break
+    print("clicked points:", click_points)      # Print points to the console
     return np.array(click_points, dtype = "float32")
 
 def Houghwarp(points, img):
