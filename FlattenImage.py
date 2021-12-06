@@ -37,10 +37,10 @@ def getkeypoints(img):
     # find and display found centroids with bounding boxes
     num_labels, labels_img, stats, centroids = cv2.connectedComponentsWithStats(mask)
     targets = []
-    dMin = 1e9
+
 
     for stat, centroid in zip(stats, centroids):
-        if (stat[cv2.CC_STAT_AREA] < 500 and stat[cv2.CC_STAT_AREA] > 100):  # do not use centroid if call, noise, etc
+        if ( stat[cv2.CC_STAT_AREA] < 500 and stat[cv2.CC_STAT_AREA] > 20):  # do not use centroid if call, noise, etc
             x0 = stat[cv2.CC_STAT_LEFT]
             y0 = stat[cv2.CC_STAT_TOP]
             w = stat[cv2.CC_STAT_WIDTH]
@@ -51,40 +51,39 @@ def getkeypoints(img):
                 img=img, pt1=(x0, y0), pt2=(x0 + w, y0 + h),
                 color=(255, 0, 0), thickness=3)
 
-    #finding colinear edge keypoints
-    #TODO: check more than 3 colinear components
-    for x in range(0, 3):
-        for i in range(0, len(targets)):
-            for j in range(i+1, len(targets)):
-                # Get the mid point between i,j.
-                midPt = (targets[i] + targets[j])/2
-                # Find another target that is closest to this midpoint.
-                for k in range(0, len(targets)):
-                    if k==i or k==j:
-                        continue
-                    d = np.linalg.norm(targets[k] - midPt)   # distance from midpoint
-                    if d < dMin:
-                        dMin = d        # This is the minimum found so far; save it
-                        i0 = targets[i]
-                        i1 = targets[k]
-                        i2 = targets[j]
-                        line = np.array([i0, i1, i2])
-                        line= line.astype(np.int32)
+    # finding colinear edge keypoints
+    # TODO: check more than 3 colinear components
 
-    #TODO: optionally display keypoints/lines around edge
-    img = cv2.circle(img, (line[0]), 10, (0, 0, 255), 3)
-    img = cv2.circle(img, (line[1]), 10, (0, 0, 255), 3)
-    img = cv2.circle(img, (line[2]), 10, (0, 0, 255), 3)
-    img = cv2.line(img, line[0], line[2], (0, 0, 255), 2)
-
-
-    create_named_window("mask", mask)
-    cv2.imshow("mask", mask)
-
-    create_named_window("img", img)
-    cv2.imshow("img", img)
-
-    cv2.waitKey(0)
+    # lines = []
+    # dMin = 30
+    # for x in range(0, 3):
+    #     for i in range(0, len(targets)):
+    #         for j in range(i+1, len(targets)):
+    #             # Get the mid point between i,j.
+    #             midPt = (targets[i] + targets[j])/2
+    #             # Find another target that is closest to this midpoint.
+    #             for k in range(0, len(targets)):
+    #                 if k==i or k==j:
+    #                     continue
+    #                 d = np.linalg.norm(targets[k] - midPt)   # distance from midpoint
+    #                 if d < dMin and np.linalg.norm(targets[j] - targets[i]) > 100:
+    #                     line = np.array([targets[i], targets[j]], np.int32)
+    #                     lines.append(line)
+    #                     # dMin = d        # This is the minimum found so far; save it
+    # for line in lines:
+    #     img = cv2.circle(img, (line[0]), 10, (0, 0, 255), 3)
+    #     img = cv2.circle(img, (line[1]), 10, (0, 0, 255), 3)
+    #     img = cv2.line(img, line[0], line[1], (255, 255, 255), 10)
+    #
+    #
+    # create_named_window("mask", mask)
+    # cv2.imshow("mask", mask)
+    #
+    # create_named_window("img", img)
+    # cv2.imshow("img", img)
+    #
+    # cv2.waitKey(0)
+    return img
 
 
 def setCorners(img):
@@ -122,4 +121,16 @@ def Houghwarp(points, img):
     create_named_window("houghwarp", img)
     cv2.imshow("houghwarp", img)
     cv2.waitKey(0)
+    return img
+
+def houghlines(img):
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    edges = cv2.Canny(gray, 50, 70, apertureSize=3)
+    minLineLength = 800
+    lines = cv2.HoughLinesP(image=edges, rho=1, theta=np.pi / 180, threshold=100, lines=np.array([]),
+                            minLineLength=minLineLength, maxLineGap=50)
+    a, b, c = lines.shape
+    for i in range(a):
+        cv2.line(img, (lines[i][0][0], lines[i][0][1]), (lines[i][0][2], lines[i][0][3]), (0, 0, 255), 3, cv2.LINE_AA)
+
     return img
