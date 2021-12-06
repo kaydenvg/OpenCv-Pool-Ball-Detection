@@ -12,18 +12,16 @@ if __name__ == '__main__':
     flat = Houghwarp(setCorners(img), img)
 
     foundballs = findBalls(flat)
+    # colorPicker(flat)
 
     print("Found ", str(len(foundballs)), " balls: ")
 
-    for team, color, stat, centroid in foundballs:
-        print(team, color, stat, centroid)
+    for team, color, stat, center in foundballs:
+        print(team, color, center)
 
-    # lines1, lines2, angles = getAllShots(flat, 0, foundballs)
-    #
-    # bestshot = getBestShot(flat, lines1, lines2, angles)
-    # create_named_window("best", bestshot)
-    # cv2.imshow("best", bestshot)
-    # cv2.waitKey(0)
+    lines1, lines2, angles, distances = getAllShots(flat, 0, foundballs)
+    bestshot = getBestShot(flat, lines1, lines2, angles, distances)
+    create_named_window("best", bestshot)
+    cv2.imshow("best", bestshot)
+    cv2.waitKey(0)
 
-    # hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-    # colorPicker(hsv)

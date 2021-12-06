@@ -18,9 +18,9 @@ def orthoganize_image(image, points):
     return cv2.warpPerspective(image, perspective_matrix, (width, height))
 
 def flattenImage(img):
+    #TODO: get corners some other way
     corners = setCorners(img)
     ortho_img = orthoganize_image(img, corners)
-    # TODO: crop ortho image correctly
     return ortho_img
 
 # checking for white diamond 'keypoints'
@@ -53,7 +53,6 @@ def getkeypoints(img):
                 color=(255, 0, 0), thickness=3)
 
     # finding colinear edge keypoints
-    # TODO: check more than 3 colinear components
     # lines = []
     # dMin = 30
     # for x in range(0, 3):
@@ -71,7 +70,7 @@ def getkeypoints(img):
     #                     lines.append(line)
     #                     # dMin = d        # This is the minimum found so far; save it
 
-    # #TODO: optionally display keypoints/lines around edge
+    # #optionally display keypoints/lines around edge
     # for line in lines:
     #     img = cv2.circle(img, (line[0]), 10, (0, 0, 255), 3)
     #     img = cv2.circle(img, (line[1]), 10, (0, 0, 255), 3)
@@ -112,15 +111,22 @@ def Houghwarp(points, img):
     width_top = np.sqrt((tl[0] - tr[0]) ** 2 + (tl[1] - tr[1]) ** 2)
     width_bottom = np.sqrt((bl[0] - br[0]) ** 2 + (bl[1] - br[1]) ** 2)
     max_width = max(int(width_top), int(width_bottom))
+
     # trapezoid/perspective height
     height_left = np.sqrt((tl[0] - bl[0]) ** 2 + (tl[1] - bl[1]) ** 2)
     height_right = np.sqrt((tr[0] - br[0]) ** 2 + (tr[1] - br[1]) ** 2)
     max_height = max(int(height_left), int(height_right))
+
     if max_height* 1.75 < max_width:
         max_height = int(max_width/1.75)
+    print(max_width)
+    print(max_height)
     # transform
-    to_points = np.array([[0, 0], [max_width + 1, 0], [max_width + 1, max_height + 1], [0, max_height + 1]], dtype="float32")
+    to_points = np.array([[0, 0], [max_width, 0], [max_width, max_height], [0, max_height]], dtype="float32")
     transMtx = cv2.getPerspectiveTransform(corners, to_points)
+    print(corners)
+    print(to_points)
+    print(transMtx)
     img = cv2.warpPerspective(img, transMtx, (max_width, max_height))
 
     create_named_window("houghwarp", img)
