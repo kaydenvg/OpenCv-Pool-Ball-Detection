@@ -4,13 +4,18 @@ import math
 def getAllShots(img, team, b_positions):
     solid_b_loc = []
     cueball_loc = []
-    for team, color, stat, centroid in b_positions:
+    for team, color, stat, center in b_positions:
+        center = np.array(center, np.int32)
         if color == 'white':
             #TODO: get center of cue ball
-            cueball_loc = [491,1364]
-        if team == 'solid' and stat is not None and color != 'white':
+            cueball_loc = center
+            print(cueball_loc)
+        if team == 'solid' and stat is not None \
+                and color != 'white'\
+                and color != 'black':
             #TODO get center of each ball/team of ball
-            solid_b_loc.append([stat[0] + stat[2]/2, stat[1] + stat[3]/2])
+            solid_b_loc.append(center)
+
 
     #TODO: get pocket locations
     pocketLocs = [(50, 50),
@@ -26,6 +31,7 @@ def getAllShots(img, team, b_positions):
     angles = []
     distances = []
     for pocket in pocketLocs:
+        img = cv2.circle(img, np.array(pocket, np.int32), 10, (0, 0, 255), 3)
         for ball_loc in solid_b_loc:
             line1 = np.array([ball_loc, cueball_loc], np.int32)
             line2 = np.array([ball_loc, pocket], np.int32)
@@ -47,7 +53,7 @@ def getAllShots(img, team, b_positions):
         img = cv2.line(img, line2[0], line2[1], (255, 255, 255), 10)
 
         angle = ang(line1, line2)
-        print("angle", angle)
+        # print("angle", angle)
 
         # create_named_window("shot", img)
         # cv2.imshow("shot", img)

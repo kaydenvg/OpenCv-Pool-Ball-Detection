@@ -12,15 +12,14 @@ if __name__ == '__main__':
     flat = Houghwarp(setCorners(img), img)
 
     foundballs = findBalls(flat)
-    colorPicker(flat)
+    # colorPicker(flat)
 
     print("Found ", str(len(foundballs)), " balls: ")
 
-    for team, color, stat in foundballs:
-        print(team, color, stat)
+    for team, color, stat, center in foundballs:
+        print(team, color, center)
 
     lines1, lines2, angles, distances = getAllShots(flat, 0, foundballs)
-
     bestshot = getBestShot(flat, lines1, lines2, angles, distances)
     create_named_window("best", bestshot)
     cv2.imshow("best", bestshot)
