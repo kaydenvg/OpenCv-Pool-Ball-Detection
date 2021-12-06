@@ -5,11 +5,12 @@ from FindBalls import *
 from miscFunctions import *
 from FlattenImage import *
 
-if __name__ == '__main__':
-    file = 'table2.png'
-    img = cv2.imread(file)
+FILES = ['table1.png', 'table2.png', 'IMG_1290.JPG', 'IMG_1291.JPG', 'IMG_1292.JPG', 'IMG_1293.JPG', 'IMG_1294.JPG',
+         'IMG_1295.JPG']
 
-    # ortho = flattenImage(img)
+if __name__ == '__main__':
+    file = "images/" + FILES[2]
+    img = cv2.imread(file)
 
     flat = Houghwarp(setCorners(img), img)
 
@@ -20,5 +21,5 @@ if __name__ == '__main__':
     for team, color, stat in foundballs:
         print(team, color, stat)
 
-    # hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+    # hsv = cv2.cvtColor(flat, cv2.COLOR_BGR2HSV)
     # colorPicker(hsv)
