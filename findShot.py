@@ -4,7 +4,7 @@ import math
 def getAllShots(img, team, b_positions):
     solid_b_loc = []
     cueball_loc = []
-    for team, color, stat in b_positions:
+    for team, color, stat, centroid in b_positions:
         if color == 'white':
             #TODO: get center of cue ball
             cueball_loc = [491,1364]

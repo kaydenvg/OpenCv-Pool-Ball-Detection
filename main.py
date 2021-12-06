@@ -9,7 +9,6 @@ from findShot import *
 if __name__ == '__main__':
     file = 'images/IMG_1294.JPG'
     img = cv2.imread(file)
-
     flat = Houghwarp(setCorners(img), img)
 
     foundballs = findBalls(flat)
@@ -27,5 +26,3 @@ if __name__ == '__main__':
     cv2.imshow("best", bestshot)
     cv2.waitKey(0)
 
-    # hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-    # colorPicker(hsv)

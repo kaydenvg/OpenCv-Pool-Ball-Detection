@@ -88,6 +88,17 @@ def getkeypoints(img):
 
 
 def setCorners(img):
+# <<<<<<< HEAD
+#     #click_points = []
+#     click_points = [(911, 984), (3064, 887), (3451, 1548), (319, 1641)]
+#
+#     if len(click_points) != 0:
+#         return np.array(click_points, dtype="float32")
+#
+#     create_named_window("Pool table Corners", img)
+#     cv2.imshow("Pool table Corners", img)
+#     cv2.setMouseCallback("Pool table Corners", on_mouse=get_xy, param=("Pool table Corners", img, click_points))
+# =======
     img_copy = copy.deepcopy(img) #make a copy of image, do not diplay corner selections on final image
     click_points  = []
     create_named_window("Pool table Corners", img_copy)
