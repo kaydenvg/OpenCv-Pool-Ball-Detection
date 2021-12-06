@@ -72,7 +72,12 @@ def getHueOfTable(img):
     hist_h = cv2.calcHist([h], [0], None, [179], [0, 179])
     hval = np.argmax(hist_h)
     print(hval)
-    return hval
+
+    hist_h = np.delete(hist_h, range(hval - 5, hval + 5))
+    hval2 = np.argmax(hist_h)
+    print(hval2)
+
+    return hval, hval2
 
 
 def findBalls(img):
@@ -88,9 +93,13 @@ def findBalls(img):
     # colorHist(hsv)
 
     # remove table
-    hueTable = getHueOfTable(hsv)
-    lower = (int(hueTable - 3), 0, 0)
-    upper = (int(hueTable + 3), 255, 255)
+    hueTable, hueTableMaterial = getHueOfTable(hsv)
+    lower = (int(hueTable - 5), 0, 0)
+    upper = (int(hueTable + 5), 255, 255)
+    mask = cv2.inRange(hsv, lower, upper)
+    mask = cv2.bitwise_not(mask)
+    lower = (int(hueTableMaterial - 2), 0, 0)
+    upper = (int(hueTableMaterial + 2), 255, 255)
     mask = cv2.inRange(hsv, lower, upper)
     mask = cv2.bitwise_not(mask)
 
