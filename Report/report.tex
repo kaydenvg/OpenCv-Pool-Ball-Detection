@@ -1,0 +1,203 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% LaTeX Template: Project Titlepage Modified (v 0.1) by rcx
+%
+% Original Source: http://www.howtotex.com
+% Date: February 2014
+% 
+% This is a title page template which be used for articles & reports.
+% 
+% This is the modified version of the original Latex template from
+% aforementioned website.
+% 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\documentclass[12pt]{report}
+\usepackage[a4paper]{geometry}
+\usepackage[myheadings]{fullpage}
+\usepackage{fancyhdr}
+\usepackage{lastpage}
+\usepackage{graphicx, wrapfig, subcaption, setspace, booktabs}
+\usepackage[T1]{fontenc}
+\usepackage[font=small, labelfont=bf]{caption}
+\usepackage{fourier}
+\usepackage[protrusion=true, expansion=true]{microtype}
+\usepackage[english]{babel}
+\usepackage{sectsty}
+\usepackage{url, lipsum}
+\graphicspath{{images/}}
+
+
+\newcommand{\HRule}[1]{\rule{\linewidth}{#1}}
+\doublespacing
+\setcounter{tocdepth}{5}
+\setcounter{secnumdepth}{5}
+
+%-------------------------------------------------------------------------------
+% HEADER & FOOTER
+%-------------------------------------------------------------------------------
+\pagestyle{fancy}
+\fancyhf{}
+\setlength\headheight{15pt}
+\fancyhead[L]{Your Names}
+\fancyhead[R]{Colorado School of Mines}
+\fancyfoot[R]{Page \thepage\ of \pageref{LastPage}}
+%-------------------------------------------------------------------------------
+% TITLE PAGE
+%-------------------------------------------------------------------------------
+
+\begin{document}
+
+\title{ \normalsize \textsc{Introduction to Computer Vision}
+		\\ [2.0cm]
+		\HRule{0.5pt} \\
+		\LARGE \textbf{\uppercase{Title}}
+		\HRule{2pt} \\ [0.5cm]
+		\normalsize \today \vspace*{5\baselineskip}}
+
+\date{}
+
+\author{
+		Your Names \\ 
+		Colorado School of Mines \\ }
+
+\maketitle
+\newpage
+
+%-------------------------------------------------------------------------------
+% Section title formatting
+\sectionfont{\scshape}
+%-------------------------------------------------------------------------------
+
+%-------------------------------------------------------------------------------
+% BODY
+%-------------------------------------------------------------------------------
+
+% \section*{Introduction}
+% \subsection*{A subsection}
+% \subsubsection*{A sub-subsection}
+
+\subsection*{Introduction}
+
+\subsection*{Motivation}
+
+\subsection*{Previous Work}
+\cite{Bauza:2016qr}
+\cite{Vachaspati:2013qr}
+\cite{StuffMadeHere}
+
+\subsection*{Technical Approach}
+\subsubsection*{Homography and Orthogonalizing Table}
+	In attempting to find a homography to orthogonalize the perspective image of the pool table, we tried a number of solutions. One potential solution was to use canny edge detection to get the edges of the pool table, then find where these edge lines intersect and use the intersections as corners when fitting to a rectangular image with fixed corners. This solution was not reliable, as canny edge detection would often find edges with higher contrast than between the pool table and the background. The image would have to be staged on a homogenous background in order for this solution to work. Another solution that was proposed was to use the white points around the edge of most pool tables to find edge lines and use a similar method as with canny edge detection to find corners and create a homography. This solution was also unreliable, as the white points would not always be visible and thus this method relied on detecting only 17 or 18 points. We fell back on using clicked points to determine the corners in the perspective image, which was reliable though required more input from the user. 
+
+	After getting the corner points, the homography between the perspective image and the orthogonalized image was calculated. The target points of the orthogonal image were created by calculating the maximum height between the left and right point heights and the maximum width between the top and bottom width. Since pool tables are of a standard height/width ratio, this was enforced when creating our orthogonal image. the target points would always have a width that matched a ratio of 1.75 times the height. This way, no matter the perspective of the image, the output image would be of a standard width/height ratio thus the corner pockets would always be in a standard location and calculation of shot distances would be correct in terms of the scale of the table.
+
+\subsubsection*{Finding Pool Balls}
+	The key to detecting the pool balls in our program is to eliminate the presence of anything but the balls in the image. At this point in our program, we can assume the original image has been converted to a flat overhead view of just the table including the pockets. First, the table itself must be removed. As shown before, finding lines in our images was not something we could do consistently, so we just use color. To remove the table from the image, we mask out a small range of hue values that represent the color of the felt material that covers the majority of the table and our image. Because we expect the felt to be most of the image, we calculate an HSV histogram and find the hue value with the most pixels in its histogram bin. The area of the image containing this hue value range is removed from the image by a mask. Several morphological operations are applied to the image after the mask because there will often be some small parts of the felt that are not included due to lighting or felt color inconsistencies. For example, one of the pool tables we were testing on had a felt that was eroding in some areas and the color was inconsistent. A small opening and closing morphological operation usually solves this issue. Since the felt often doesn’t cover the entire table, we also need to eliminate the parts of the image on the border (including the pockets) where no balls should be detected. Making some assumptions about the scale of pool tables borders with respect to the rest of the table, this can just simply be cropped out of the image.
+	
+	\begin{figure}[htp]
+    \centering
+    \includegraphics[width=9cm]{image1.png}
+    \caption{image of the table with the felt masked out}
+    \label{fig:feltmask}
+    \end{figure}
+ 
+	Now, since we have an image of just pool balls we need to determine both the colors and the team for each ball. Unlike the table felt, the pool balls have standard colors we can use to differentiate what we need \cite{Vachaspati:2013qr}. We assign each ball a hue value range and use this to remove the other ball via a simple threshold. Detecting the balls themselves is fairly easy at this point using connected components. If there are multiple connected components for one ball color and these components are reasonably far away from each other, then we can predict there is a solid and stripe present on the table. To predict which one of these components is the solid ball and which is striped, we compare the area of the components. Since the striped ball will have at least some of the white stripe showing in the image, the component will likely be smaller in area than the solid.
+ 
+	The cue ball and 8 ball are both special cases. For both cases, we look for 1 ball maximum. Also, both are harder to detect by hue value so we had to pay closer attention to the saturation and value that the cue and 8 ball were emitting to have a proper threshold. 
+ 
+	Once we can connect a ball like the striped yellow to its connected component, we can package it in a data structure for the entire game that contains all necessary information about each ball. This information includes the identification of the ball itself and the location of its centroid. This should be enough information from the one picture input to determine the entire current state of the game, except for who’s turn it is.
+	
+\subsubsection*{Determining plausible shots and best shot}
+To determine all plausible shots for a particular layout of balls on the table first requires the location of the cue ball. We assume the cue ball to be the largest white component in the image, then use its centroid for the location of the cue ball. We then iterate through every found colored ball on the table, and draw a line starting at the cue ball and ending at the centroid of the found colored ball. We then iterate through all of the colored balls we found, and find a line from its centroid to each corner pocket. We remove any shot where the angle between the two lines is less than 90 degrees. This is because if the angle between the lines is less than 90 degrees, the cue ball cannot collide on the colored ball from the opposite side and shoot it back toward the original position of the cue ball \cite{Jankunas:2014qr}.
+
+
+ In contrast, easier shots are shots where one hits the center of the colored ball where the angle between the two lines is 180 degrees. Thus we calculate our ‘easiest’ shot based on how close the angle between these two lines is to 180 degrees. Another metric of how easy a shot is is distance. The lower the distance of the shot overall, the more error in angle of collision can be made where the shot will still land the colored ball in the pocket \cite{Jankunas:2014qr}. Thus, we use distance as another metric for determining how easy a particular shot is, then use the minimum distance and angle for determining the best shot. 
+ 
+  \begin{figure}[htp]
+    \centering
+    \includegraphics[width=9cm]{easyhardfig.png}
+    \caption{The difference between an easy (a) shot and hard (b) shot based on angle of collision \cite{Jankunas:2014qr}}
+    \label{fig:easyhard}
+\end{figure}
+ 
+ \begin{figure}[htp]
+    \centering
+    \includegraphics[width=9cm]{image5.png}
+    \caption{An example of best shot determined by distance and angle}
+    \label{fig:bestshot}
+\end{figure}
+
+
+
+%-------------------------------------------------------------------------------
+% REFERENCES
+%-------------------------------------------------------------------------------
+\newpage
+\bibliographystyle{plain}
+\bibliography{sample.bib}
+
+
+\end{document}
+
+%-------------------------------------------------------------------------------
+% SNIPPETS
+%-------------------------------------------------------------------------------
+
+%\begin{figure}[!ht]
+%	\centering
+%	\includegraphics[width=0.8\textwidth]{file_name}
+%	\caption{}
+%	\centering
+%	\label{label:file_name}
+%\end{figure}
+
+%\begin{figure}[!ht]
+%	\centering
+%	\includegraphics[width=0.8\textwidth]{graph}
+%	\caption{Blood pressure ranges and associated level of hypertension (American Heart Association, 2013).}
+%	\centering
+%	\label{label:graph}
+%\end{figure}
+
+%\begin{wrapfigure}{r}{0.30\textwidth}
+%	\vspace{-40pt}
+%	\begin{center}
+%		\includegraphics[width=0.29\textwidth]{file_name}
+%	\end{center}
+%	\vspace{-20pt}
+%	\caption{}
+%	\label{label:file_name}
+%\end{wrapfigure}
+
+%\begin{wrapfigure}{r}{0.45\textwidth}
+%	\begin{center}
+%		\includegraphics[width=0.29\textwidth]{manometer}
+%	\end{center}
+%	\caption{Aneroid sphygmomanometer with stethoscope (Medicalexpo, 2012).}
+%	\label{label:manometer}
+%\end{wrapfigure}
+
+%\begin{table}[!ht]\footnotesize
+%	\centering
+%	\begin{tabular}{cccccc}
+%	\toprule
+%	\multicolumn{2}{c} {Pearson's correlation test} & \multicolumn{4}{c} {Independent t-test} \\
+%	\midrule	
+%	\multicolumn{2}{c} {Gender} & \multicolumn{2}{c} {Activity level} & \multicolumn{2}{c} {Gender} \\
+%	\midrule
+%	Males & Females & 1st level & 6th level & Males & Females \\
+%	\midrule
+%	\multicolumn{2}{c} {BMI vs. SP} & \multicolumn{2}{c} {Systolic pressure} & \multicolumn{2}{c} {Systolic Pressure} \\
+%	\multicolumn{2}{c} {BMI vs. DP} & \multicolumn{2}{c} {Diastolic pressure} & \multicolumn{2}{c} {Diastolic pressure} \\
+%	\multicolumn{2}{c} {BMI vs. MAP} & \multicolumn{2}{c} {MAP} & \multicolumn{2}{c} {MAP} \\
+%	\multicolumn{2}{c} {W:H ratio vs. SP} & \multicolumn{2}{c} {BMI} & \multicolumn{2}{c} {BMI} \\
+%	\multicolumn{2}{c} {W:H ratio vs. DP} & \multicolumn{2}{c} {W:H ratio} & \multicolumn{2}{c} {W:H ratio} \\
+%	\multicolumn{2}{c} {W:H ratio vs. MAP} & \multicolumn{2}{c} {\% Body fat} & \multicolumn{2}{c} {\% Body fat} \\
+%	\multicolumn{2}{c} {} & \multicolumn{2}{c} {Height} & \multicolumn{2}{c} {Height} \\
+%	\multicolumn{2}{c} {} & \multicolumn{2}{c} {Weight} & \multicolumn{2}{c} {Weight} \\
+%	\multicolumn{2}{c} {} & \multicolumn{2}{c} {Heart rate} & \multicolumn{2}{c} {Heart rate} \\
+%	\bottomrule
+%	\end{tabular}
+%	\caption{Parameters that were analysed and related statistical test performed for current study. BMI - body mass index; SP - systolic pressure; DP - diastolic pressure; MAP - mean arterial pressure; W:H ratio - waist to hip ratio.}
+%	\label{label:tests}
+%\end{table}
