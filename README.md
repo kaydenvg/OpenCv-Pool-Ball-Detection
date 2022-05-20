@@ -1,3 +1,2 @@
-# CVFinal
- 
-## Kayden von Grosse, Callista Coats, John Brown
+# Pool table homography + pool ball detection with OpenCV
+## Kayden von Grosse and John Brown
